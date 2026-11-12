@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using Unity.Entities;
-using Unity.Collections;
-using Unity.Transforms;
-using Unity.Rendering;
-using Unity.Mathematics;
-using Unity.Jobs;
 using System.IO;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Rendering;
+using Unity.Transforms;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.TerrainUtils;
 
 public class WorldSystem : MonoBehaviour
 {
@@ -47,11 +49,12 @@ public class WorldSystem : MonoBehaviour
 
                     Entity entity = entities[i];
                     entityManager.SetComponentData(entity, new Translation { Value = new float3(float.Parse(split[0]) * 50, float.Parse(split[1]) * 50, float.Parse(split[2]) * 50) });
-                    entityManager.SetComponentData(entity, new Scale { Value = Mathf.Log10(float.Parse(split[4]))  });
+                    entityManager.SetComponentData(entity, new Scale { Value = Mathf.Log10(float.Parse(split[4]))*10  });
 
 
                     //Material mater = new Material(mate); 
                     //mater.color = new Color32((byte)UnityEngine.Random.Range(0, 255), (byte)UnityEngine.Random.Range(0, 255), (byte)UnityEngine.Random.Range(0, 255), 255);
+
 
                     byte tmp = 0;
                     if (double.Parse(split[3]) >= 113017) tmp = 48;
@@ -103,13 +106,20 @@ public class WorldSystem : MonoBehaviour
                     else if (double.Parse(split[3]) >= 2150) tmp = 2;
                     else if (double.Parse(split[3]) >= 1675) tmp = 1;
                     else if (double.Parse(split[3]) >= 1195) tmp = 0;
-                    entityManager.SetSharedComponentData(entity, new RenderMesh
-                    {
-                        mesh = star,
-                        
-                        material = mate[tmp],
+                    var renderMeshDescription = new RenderMeshDescription(
+                    star,
+                    mate[tmp],
+                    shadowCastingMode: ShadowCastingMode.Off,
+                    receiveShadows: false
+                     );
 
-                    });
+                    // Entity 렌더링 컴포넌트 구성
+                    RenderMeshUtility.AddComponents(
+                        entity,
+                        entityManager,
+                        renderMeshDescription
+                    );
+
                     //entityManager.AddComponentData(entity, new MyColorComponent { Value = new float4(1, 0, 0, 1) });
                     for (int w = 0; w < 10; w++)
                     {
